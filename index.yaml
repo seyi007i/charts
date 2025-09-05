@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  return-nginx-chart:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2025-09-06T00:13:10.2407827+01:00"
+    description: A Helm chart for Kubernetes
+    digest: 44d216ea137176d50a501b02f57b440825a5668c4b6fb0930bd6f5843f682f07
+    name: return-nginx-chart
+    type: application
+    urls:
+    - https://seyi007i.github.io/charts/return-nginx-chart-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-09-06T00:13:10.2317447+01:00"
