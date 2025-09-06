@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: myapp
+  namespace: argocd   # ArgoCD usually runs in this ns
+spec:
+  project: default
+
+  source:
+    repoURL: https://seyi007i.github.io/charts/
+    chart: return-nginx-chart
+    targetRevision: 0.1.0          # Chart version
+    helm:
+      releaseName: return-nginx-chart
+     # values: |                    # Inline values.yaml overrides
+     #   replicaCount: 2
+     #   image:
+     #     tag: "1.2.3"
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
