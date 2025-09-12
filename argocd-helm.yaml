@@ -12,10 +12,10 @@ spec:
     targetRevision: 0.1.0          # Chart version
     helm:
       releaseName: return-nginx-chart
-     # values: |                    # Inline values.yaml overrides
-     #   replicaCount: 2
-     #   image:
-     #     tag: "1.2.3"
+      #values: |                    # Inline values.yaml overrides
+      #  replicaCount: 1
+      #  image:
+      #    tag: "1.0"
 
   destination:
     server: https://kubernetes.default.svc
