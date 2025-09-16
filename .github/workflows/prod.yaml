@@ -1,0 +1,68 @@
+name: Deploy Nginx
+
+on:
+  #push:
+  #  branches:
+ #     - qa
+  #    - gh-pages
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy (prod/staging/qa)"
+        required: true
+        default: "prod"
+
+env:
+  IMAGE_NAME: seyiogunniran/my-nginx
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set environment based on branch
+        id: set-env
+        run: |
+          if [[ "${GITHUB_REF##*/}" == "qa" ]]; then
+            echo "env=qa" >> $GITHUB_OUTPUT
+          elif [[ "${GITHUB_REF##*/}" == "staging" ]]; then
+            echo "env=staging" >> $GITHUB_OUTPUT
+          else
+            echo "env=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and tag Docker image
+        run: |
+          TAG=${{ steps.set-env.outputs.env }}-${{ github.sha }}
+          docker build -t $IMAGE_NAME:$TAG .
+          docker push $IMAGE_NAME:$TAG
+          echo "tag=$TAG" >> $GITHUB_ENV
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment: 
+      name: ${{ needs.build-and-push.outputs.env }}
+      url: http://${{ secrets.VM_HOST_${{ upper(needs.build-and-push.outputs.env) }} }}
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.VM_HOST_${{ upper(steps.set-env.outputs.env) }} }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            cd /opt/nginx-app
+            export IMAGE=${{ env.IMAGE_NAME }}:${{ env.tag }}
+            sed -i "s|image: .*|image: $IMAGE|" docker-compose.yml
+            docker-compose pull
+            docker-compose up -d
+
