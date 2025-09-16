@@ -1,16 +1,10 @@
-name: Deploy Nginx
+name: Deploy Nginx (Prod)
 
 on:
-  #push:
-  #  branches:
- #     - qa
-  #    - gh-pages
+ # push:
+ #   branches:
+ #     - gh-pages
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Environment to deploy (prod/staging/qa)"
-        required: true
-        default: "prod"
 
 env:
   IMAGE_NAME: seyiogunniran/my-nginx
@@ -18,6 +12,9 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    outputs:
+      env: prod
+      tag: ${{ steps.build-image.outputs.tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,41 +25,30 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set environment based on branch
-        id: set-env
-        run: |
-          if [[ "${GITHUB_REF##*/}" == "qa" ]]; then
-            echo "env=qa" >> $GITHUB_OUTPUT
-          elif [[ "${GITHUB_REF##*/}" == "staging" ]]; then
-            echo "env=staging" >> $GITHUB_OUTPUT
-          else
-            echo "env=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
-          fi
-
       - name: Build and tag Docker image
+        id: build-image
         run: |
-          TAG=${{ steps.set-env.outputs.env }}-${{ github.sha }}
+          TAG=prod-${GITHUB_SHA}
           docker build -t $IMAGE_NAME:$TAG .
           docker push $IMAGE_NAME:$TAG
-          echo "tag=$TAG" >> $GITHUB_ENV
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
   deploy:
     runs-on: ubuntu-latest
     needs: build-and-push
     environment: 
-      name: ${{ needs.build-and-push.outputs.env }}
-      url: http://${{ secrets.VM_HOST_${{ upper(needs.build-and-push.outputs.env) }} }}
+      name: prod
+      url: http://${{ secrets.VM_HOST_PROD }}
     steps:
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.VM_HOST_${{ upper(steps.set-env.outputs.env) }} }}
-          username: ${{ secrets.VM_USER }}
+          host: ${{ secrets.VM_HOST_PROD }} # e.g. ec2-35-177-103-200.eu-west-2.compute.amazonaws.com
+          username: ${{ secrets.VM_USER }}  # e.g. ubuntu
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
             cd /opt/nginx-app
-            export IMAGE=${{ env.IMAGE_NAME }}:${{ env.tag }}
+            export IMAGE=${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.tag }}
             sed -i "s|image: .*|image: $IMAGE|" docker-compose.yml
             docker-compose pull
             docker-compose up -d
-
