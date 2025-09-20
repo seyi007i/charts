@@ -3,4 +3,4 @@ services:
   web:
     image: seyiogunniran/my-nginx:1.0
     ports:
-      - "8080:80"
+      - "80:80"
