@@ -49,6 +49,6 @@ jobs:
           script: |
             cd /opt/nginx-app
             export IMAGE=${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.tag }}
-            sed -i "s|image: .*|image: $IMAGE|" docker-compose.yml
+            sed -i "s|image: .*|image: $IMAGE|" docker-compose.yaml
             docker-compose pull
             docker-compose up -d
