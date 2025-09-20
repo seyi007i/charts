@@ -38,17 +38,30 @@ jobs:
     needs: build-and-push
     environment: 
       name: prod
-      url: http://ec2-54-81-151-26.compute-1.amazonaws.com
+      url: http://ec2-35-177-103-200.eu-west-2.compute.amazonaws.com
     steps:
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.VM_HOST_PROD }} # e.g. ec2-35-177-103-200.eu-west-2.compute.amazonaws.com
-          username: ${{ secrets.VM_USER }}  # e.g. ubuntu
+          host: ${{ secrets.VM_HOST_PROD }}
+          username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
+            # Ensure directory exists
             cd /opt/nginx-app
+
+            # Clone or update repo
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/${{ github.repository }} .
+            else
+              git fetch --all
+              git reset --hard origin/${GITHUB_REF##*/}
+            fi
+
+            # Update docker-compose.yml image line
             export IMAGE=${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.tag }}
             sed -i "s|image: .*|image: $IMAGE|" docker-compose.yaml
-            docker-compose pull
-            docker-compose up -d
+
+            # Pull and restart with new image
+            docker compose pull
+            docker compose up -d

@@ -1,6 +1,21 @@
-version: "3.8"
+version: "3.9"
+
 services:
-  web:
-    image: seyiogunniran/my-nginx:1.0
+  nginx:
+    image: seyiogunniran/my-nginx:latest  # This gets replaced with prod-<sha> by the workflow
+    container_name: nginx-app
+    restart: always
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      # Mount repo root (where index.html lives) into Nginx web root
+      - ./:/usr/share/nginx/html:ro
+      # Optional: custom Nginx config (if you need overrides)
+    #  - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - webnet
+
+networks:
+  webnet:
+    driver: bridge
