@@ -1,0 +1,3 @@
+The storage/framework directory is intended to hold framework-generated files, such as cache and sessions. This directory is typically managed by Laravel itself and does not require any specific files to be created manually. Therefore, the contents of the storage/framework directory will be empty.
+
+storage/framework is intentionally left blank.

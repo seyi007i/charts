@@ -65,5 +65,5 @@ jobs:
             sed -i "s|image: .*|image: $IMAGE|" docker-compose.yaml
 
             # Pull and restart with new image
-            docker compose pull
-            docker compose up -d
+            docker compose -f docker-compose.yaml pull
+            docker compose -f docker-compose.yaml up -d

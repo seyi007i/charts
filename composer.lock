@@ -1,0 +1,63 @@
+{
+    "packages": {
+        "php": {
+            "version": "8.2.*",
+            "source": {
+                "url": "https://github.com/php/php-src.git",
+                "reference": "8.2.0"
+            }
+        },
+        "laravel/framework": {
+            "version": "9.0.*",
+            "source": {
+                "url": "https://github.com/laravel/framework.git",
+                "reference": "9.0.0"
+            }
+        },
+        "laravel/tinker": {
+            "version": "^2.0",
+            "source": {
+                "url": "https://github.com/laravel/tinker.git",
+                "reference": "2.0.0"
+            }
+        },
+        "fideloper/proxy": {
+            "version": "^4.4",
+            "source": {
+                "url": "https://github.com/fideloper/TrustedProxy.git",
+                "reference": "4.4.0"
+            }
+        },
+        "fruitcake/laravel-cors": {
+            "version": "^2.0",
+            "source": {
+                "url": "https://github.com/fruitcake/laravel-cors.git",
+                "reference": "2.0.0"
+            }
+        }
+    },
+    "packages-dev": {
+        "phpunit/phpunit": {
+            "version": "^9.5",
+            "source": {
+                "url": "https://github.com/sebastianbergmann/phpunit.git",
+                "reference": "9.5.0"
+            }
+        },
+        "mockery/mockery": {
+            "version": "^1.4",
+            "source": {
+                "url": "https://github.com/mockery/mockery.git",
+                "reference": "1.4.0"
+            }
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "content-hash": "d3c8f1f9c4b2c8e1f1e4c8f1f9c4b2c8e1f1e4c8f1f9c4b2c8e1f1e4c8f1f9c4b"
+}

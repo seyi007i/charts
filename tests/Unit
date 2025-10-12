@@ -1,0 +1,22 @@
+<?php
+
+namespace Tests\Unit;
+
+use Tests\TestCase;
+use App\Jobs\SampleJob;
+use Illuminate\Support\Facades\Log;
+
+class SampleJobTest extends TestCase
+{
+    public function testSampleJobLogsExecutionTime()
+    {
+        Log::shouldReceive('info')
+            ->once()
+            ->withArgs(function ($message) {
+                return strpos($message, 'Sample job executed at') !== false;
+            });
+
+        $job = new SampleJob();
+        $job->handle();
+    }
+}

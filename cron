@@ -1,0 +1,138 @@
+# Implementation Steps
+
+1. **Create Laravel Project**
+    ```bash
+    composer create-project laravel/laravel cron-app
+    cd cron-app
+    ```
+
+2. **Set Up MySQL Database**
+    - Add MySQL service in `docker-compose.yml` (see step 5).
+    - Update `.env`:
+      ```
+      DB_CONNECTION=mysql
+      DB_HOST=mysql
+      DB_PORT=3306
+      DB_DATABASE=cron_db
+      DB_USERNAME=root
+      DB_PASSWORD=secret
+      ```
+
+3. **Configure Queue**
+    - Install queue driver (e.g., database):
+      ```bash
+      php artisan queue:table
+      php artisan migrate
+      ```
+    - Update `.env`:
+      ```
+      QUEUE_CONNECTION=database
+      ```
+
+4. **Add a Sample Job and Trigger**
+    - Create a job:
+      ```bash
+      php artisan make:job SampleJob
+      ```
+    - Edit `app/Jobs/SampleJob.php`:
+      ```php
+      public function handle()
+      {
+          \Log::info('Sample job executed at ' . now());
+      }
+      ```
+    - Trigger job from a controller (e.g., `app/Http/Controllers/JobController.php`):
+      ```php
+      public function trigger()
+      {
+          dispatch(new \App\Jobs\SampleJob());
+          return response()->json(['status' => 'Job dispatched']);
+      }
+      ```
+    - Add route in `routes/web.php`:
+      ```php
+      Route::post('/trigger-job', [JobController::class, 'trigger']);
+      ```
+
+5. **Dockerize the Project**
+    - `Dockerfile` (add supervisor for queue worker):
+      ```Dockerfile
+      FROM php:8.2-fpm
+
+      RUN apt-get update && apt-get install -y \
+          libpng-dev \
+          libonig-dev \
+          libxml2-dev \
+          zip \
+          unzip \
+          cron \
+          supervisor \
+          && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+
+      COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+      WORKDIR /var/www
+
+      COPY . .
+
+      RUN composer install
+
+      COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+      CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+      ```
+    - `docker/supervisord.conf`:
+      ```
+      [supervisord]
+      nodaemon=true
+
+      [program:queue-worker]
+      command=php /var/www/artisan queue:work --sleep=3 --tries=3
+      autostart=true
+      autorestart=true
+      user=www-data
+      ```
+
+    - `docker-compose.yml`:
+      ```yaml
+      version: '3.8'
+      services:
+        app:
+          build: .
+          ports:
+            - "8000:8000"
+          volumes:
+            - .:/var/www
+          environment:
+            - APP_ENV=local
+          depends_on:
+            - mysql
+          command: php artisan serve --host=0.0.0.0 --port=8000
+        mysql:
+          image: mysql:8.0
+          environment:
+            MYSQL_DATABASE: cron_db
+            MYSQL_ROOT_PASSWORD: secret
+          ports:
+            - "3306:3306"
+          volumes:
+            - db_data:/var/lib/mysql
+      volumes:
+        db_data:
+      ```
+
+6. **Build and Run**
+    ```bash
+    docker-compose up --build
+    ```
+
+7. **Trigger the Queue Job**
+    - Send a POST request to `/trigger-job` from the frontend.
+    - The job will be processed by the queue worker.
+
+# Summary
+
+- Laravel project with queue jobs triggered by frontend.
+- Queue worker managed by Supervisor in Docker.
+- MySQL included as the database.
+- Use Docker Compose for setup.
