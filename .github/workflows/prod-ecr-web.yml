@@ -45,12 +45,8 @@ jobs:
       - name: Load secrets and save to app.env
         run: aws ssm get-parameter --with-decryption --name $SECRET_NAME --region ${{ env.AWS_REGION }} --query Parameter.Value | sed -e 's/^"//' -e 's/"$//' -e 's/\\n/\n/g' -e 's/\\//g' > .env
       
-      - name: Backup existing .env and replace with new
-        run: |
-          sudo cp $APP_DIR/.env $APP_DIR/old_env || true
-          sudo rm -f $APP_DIR/.env
-          sudo cp new_env $APP_DIR/.env
-          sudo chmod 600 $APP_DIR/.env
+     # - name: Backup existing .env and replace with new
+        
 
       - name: Update docker-compose.yaml image line
         run: |
