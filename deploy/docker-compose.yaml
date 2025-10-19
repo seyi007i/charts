@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   nginx:
-    image: seyiogunniran/my-nginx:latest  # This gets replaced with prod-<sha> by the workflow
+    image: 489794767202.dkr.ecr.us-east-1.amazonaws.com/demo  # This gets replaced with prod-<sha> by the workflow
     container_name: nginx-app
     restart: always
     ports:

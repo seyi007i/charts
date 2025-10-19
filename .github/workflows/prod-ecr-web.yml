@@ -50,7 +50,7 @@ jobs:
 
       - name: Update docker-compose.yaml image line
         run: |
-          cd $APP_DIR
+          # cd $APP_DIR
            # Update docker-compose.yaml image line
           export IMAGE=${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.tag }}
           sed -i "s|image: .*|image: $IMAGE|" deploy/docker-compose.yaml
