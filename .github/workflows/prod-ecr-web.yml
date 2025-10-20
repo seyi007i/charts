@@ -50,15 +50,11 @@ jobs:
 
       - name: Update image in docker-compose.yaml and restart container
         run: |
-          sed -i "s|image: .*|image: ${IMAGE_NAME}:${TAG}|" deploy/docker-compose.yaml
+          ssed -i "s,IMAGE_TAG,${GITHUB_SHA}," deploy/docker-compose.yaml
                                
           docker compose -f deploy/docker-compose.yaml pull
           docker compose -f deploy/docker-compose.yaml up -d
-        env:
-          IMAGE_NAME: ${{ env.IMAGE_NAME }}
-          TAG: ${{ needs.build-and-push.outputs.tag }}
-
-
+        
       - name: Wait before health check
         run: sleep 60
 
