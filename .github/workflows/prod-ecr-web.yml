@@ -28,6 +28,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Edit container tag in manifest file
+        run: |
+          sed -i "s,IMAGE_TAG,${GITHUB_SHA}," deploy/docker-compose.yaml
+          
       - name: Log in to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -49,14 +53,16 @@ jobs:
         
 
       - name: Deploy updated image to remote server
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/scp-action@v0.1.7
         with:
          host: ${{ secrets.VM_HOST_PROD }}
          username: ${{ secrets.VM_USER }}
          key: ${{ secrets.VM_SSH_KEY }}
+         source: deploy/docker-compose.yaml
+         target: /opt/app
          script: |
           cd /opt/app
-          sed -i "s,IMAGE_TAG,${GITHUB_SHA}," deploy/docker-compose.yaml
+          
           docker compose -f deploy/docker-compose.yaml pull
           docker compose -f deploy/docker-compose.yaml up -d
 
