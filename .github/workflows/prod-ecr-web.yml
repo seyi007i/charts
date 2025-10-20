@@ -48,12 +48,18 @@ jobs:
      # - name: Backup existing .env and replace with new  ${GITHUB_SHA}
         
 
-      - name: Update image in docker-compose.yaml and restart container
-        run: |
+      - name: Deploy updated image to remote server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+         host: ${{ secrets.REMOTE_HOST }}
+         username: ${{ secrets.REMOTE_USER }}
+         key: ${{ secrets.REMOTE_SSH_KEY }}
+         script: |
+          cd /opt/app
           sed -i "s,IMAGE_TAG,${GITHUB_SHA}," deploy/docker-compose.yaml
-                               
           docker compose -f deploy/docker-compose.yaml pull
           docker compose -f deploy/docker-compose.yaml up -d
+
         
       - name: Wait before health check
         run: sleep 60
