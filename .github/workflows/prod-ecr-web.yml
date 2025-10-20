@@ -31,7 +31,7 @@ jobs:
       - name: Edit container tag in manifest file
         run: |
           sed -i "s,IMAGE_TAG,${GITHUB_SHA}," deploy/docker-compose.yaml
-          
+
       - name: Log in to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -59,9 +59,9 @@ jobs:
          username: ${{ secrets.VM_USER }}
          key: ${{ secrets.VM_SSH_KEY }}
          source: deploy/docker-compose.yaml
-         target: /opt/app
+         target: /home/ubuntu/app
          script: |
-          cd /opt/app
+          cd /home/ubuntu/app
           
           docker compose -f deploy/docker-compose.yaml pull
           docker compose -f deploy/docker-compose.yaml up -d
