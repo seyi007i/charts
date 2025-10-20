@@ -45,12 +45,12 @@ jobs:
       - name: Load secrets and save to app.env
         run: aws ssm get-parameter --with-decryption --name $SECRET_NAME --region ${{ env.AWS_REGION }} --query Parameter.Value | sed -e 's/^"//' -e 's/"$//' -e 's/\\n/\n/g' -e 's/\\//g' > .env
       
-     # - name: Backup existing .env and replace with new
+     # - name: Backup existing .env and replace with new  ${GITHUB_SHA}
         
 
       - name: Update image in docker-compose.yaml and restart container
         run: |
-          sed -i "s,IMAGE_TAG,${GITHUB_SHA}," deploy/docker-compose.yaml
+          sed -i "s,IMAGE_TAG,${{ needs.build-and-push.outputs.tag }}," deploy/docker-compose.yaml
                                
           docker compose -f deploy/docker-compose.yaml pull
           docker compose -f deploy/docker-compose.yaml up -d
