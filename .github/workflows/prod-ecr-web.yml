@@ -51,9 +51,9 @@ jobs:
       - name: Deploy updated image to remote server
         uses: appleboy/ssh-action@v1.0.0
         with:
-         host: ${{ secrets.REMOTE_HOST }}
-         username: ${{ secrets.REMOTE_USER }}
-         key: ${{ secrets.REMOTE_SSH_KEY }}
+         host: ${{ secrets.VM_HOST_PROD }}
+         username: ${{ secrets.VM_USER }}
+         key: ${{ secrets.VM_SSH_KEY }}
          script: |
           cd /opt/app
           sed -i "s,IMAGE_TAG,${GITHUB_SHA}," deploy/docker-compose.yaml
