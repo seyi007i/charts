@@ -47,7 +47,7 @@ jobs:
           echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
 
       - name: Load secrets and save to app.env
-        run: aws ssm get-parameter --with-decryption --name $SECRET_NAME --region ${{ env.AWS_REGION }} --query Parameter.Value | sed -e 's/^"//' -e 's/"$//' -e 's/\\n/\n/g' -e 's/\\//g' > .env
+        run: aws ssm get-parameter --with-decryption --name $SECRET_NAME --region ${{ env.AWS_REGION }} --query Parameter.Value | sed -e 's/^"//' -e 's/"$//' -e 's/\\n/\n/g' -e 's/\\//g' > deploy/.env
       
      # - name: Backup existing .env and replace with new  ${GITHUB_SHA}
         
@@ -58,13 +58,13 @@ jobs:
          host: ${{ secrets.VM_HOST_PROD }}
          username: ${{ secrets.VM_USER }}
          key: ${{ secrets.VM_SSH_KEY }}
-         source: deploy/docker-compose.yaml
+         source: deploy/*.*
          target: /home/ubuntu/app
          script: |
-          cd /home/ubuntu/app
+          cd /home/ubuntu/app/deploy
           
-          docker compose -f deploy/docker-compose.yaml pull
-          docker compose -f deploy/docker-compose.yaml up -d
+          docker compose -f docker-compose.yaml pull
+          docker compose -f docker-compose.yaml up -d
 
         
       - name: Wait before health check
