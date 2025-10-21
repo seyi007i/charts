@@ -60,12 +60,23 @@ jobs:
          key: ${{ secrets.VM_SSH_KEY }}
          source: deploy/*.*
          target: /home/ubuntu/app
-         script: |
-          cd /home/ubuntu/app/deploy
-          
-          docker compose -f docker-compose.yaml down
-          docker compose -f docker-compose.yaml up -d
+         
 
+      - name: Run Docker Compose on server
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.VM_HOST_PROD }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/app/deploy
+
+                # Optional: pull latest image if using ECR
+                # aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 489794767202.dkr.ecr.us-east-1.amazonaws.com
+    
+            docker compose -f docker-compose.yaml down
+            docker compose -f docker-compose.yaml up -d
+ 
         
       - name: Wait before health check
         run: sleep 60
@@ -73,7 +84,7 @@ jobs:
       - name: Check /healthz endpoint
         id: healthz-check
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" $APP_URL)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$APP_URL")
           echo "HTTP status: $STATUS"
           if [ "$STATUS" = "200" ]; then
             echo "App is healthy"
@@ -81,6 +92,7 @@ jobs:
           else
             echo "App is NOT healthy. Marking for rollback."
             echo "rollback=true" >> $GITHUB_OUTPUT
+          fi
 
   rollback:
     runs-on: ubuntu-latest
